@@ -170,6 +170,8 @@ export async function GET(
           text: tweet.properties.text || '',
           favoriteCount: toJsValue(tweet.properties.favorites) || 0,
           createdAt: toDateString(tweet.properties.created_at),
+          name: user.properties.name || user.properties.screen_name || '',
+          screenName: user.properties.screen_name || '',
         });
       }
 

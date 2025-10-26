@@ -57,6 +57,7 @@ export interface GraphNode {
   type: 'user' | 'tweet' | 'hashtag';
   followersCount?: number;
   name?: string;
+  screenName?: string;
   text?: string;
   favoriteCount?: number;
   createdAt?: string;

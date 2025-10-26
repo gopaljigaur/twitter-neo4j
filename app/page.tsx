@@ -101,13 +101,21 @@ export default function Home() {
     scrollToGraph();
   };
 
-  const handleViewTweetInGraph = (tweetId: string) => {
-    // Close modal and focus on the tweet
+  const handleViewTweetInGraph = (tweet: GraphNode) => {
     setSelectedUser(null);
     setSelectedHashtag(null);
     setSelectedTweet(null);
-    setFocusedNodeId(`tweet-${tweetId}`);
-    setHighlightedNodeId(`tweet-${tweetId}`);
+    const nodeId = tweet.id.startsWith('tweet-') ? tweet.id : `tweet-${tweet.id}`;
+    setFocusedNodeId(nodeId);
+    setHighlightedNodeId(nodeId);
+    if (tweet.screenName) {
+      setFilters((prev) => ({
+        ...prev,
+        users: [tweet.screenName!],
+        hashtags: [],
+        keywords: [],
+      }));
+    }
     scrollToGraph();
   };
 
@@ -130,9 +138,8 @@ export default function Home() {
   };
 
   const handleHighlightTweet = (tweetId: string) => {
-    // Close modal, highlight and focus on the tweet
     setSelectedTweet(null);
-    const nodeId = `tweet-${tweetId}`;
+    const nodeId = tweetId.startsWith('tweet-') ? tweetId : `tweet-${tweetId}`;
     setHighlightedNodeId(nodeId);
     setFocusedNodeId(nodeId);
     scrollToGraph();
@@ -248,7 +255,7 @@ export default function Home() {
           onClose={() => setSelectedTweet(null)}
           onUserClick={handleUserClick}
           onHashtagClick={handleHashtagClick}
-          onViewInGraph={() => handleViewTweetInGraph(selectedTweet.id)}
+          onViewInGraph={() => handleViewTweetInGraph(selectedTweet)}
           onHighlight={() => handleHighlightTweet(selectedTweet.id)}
         />
       )}
