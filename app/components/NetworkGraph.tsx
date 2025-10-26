@@ -461,7 +461,7 @@ export default function NetworkGraph({
           ref={fgRef}
           width={dimensions.width}
           height={dimensions.height}
-          backgroundColor={theme === 'dark' ? '#0a0a0a' : '#fafafa'}
+          backgroundColor={theme === 'light' ? '#fafafa' : '#0a0a0a'}
           graphData={graphData}
           warmupTicks={0}
           cooldownTime={0}
