@@ -15,11 +15,10 @@ interface Neo4jNode {
   };
 }
 
-// Helper function to convert Neo4j Integer to JavaScript number or string
+// Convert Neo4j Integer to JS number or string
 function toJsValue(value: any, asString = false): any {
   if (value === null || value === undefined) return value;
 
-  // Handle Neo4j Integer objects
   if (typeof value === 'object' && ('low' in value || 'high' in value)) {
     const intValue = neo4j.int(value);
     return asString ? intValue.toString() : intValue.toNumber();
@@ -28,16 +27,15 @@ function toJsValue(value: any, asString = false): any {
   return value;
 }
 
-// Helper function to convert Neo4j DateTime to ISO string
+// Convert Neo4j DateTime to ISO string
 function toDateString(dateObj: any): string {
   if (!dateObj || typeof dateObj !== 'object') return '';
 
   try {
-    // Handle Neo4j DateTime object format
     if (dateObj.year) {
       const date = new Date(
         toJsValue(dateObj.year),
-        toJsValue(dateObj.month) - 1, // JS months are 0-indexed
+        toJsValue(dateObj.month) - 1,
         toJsValue(dateObj.day),
         toJsValue(dateObj.hour) || 0,
         toJsValue(dateObj.minute) || 0,
@@ -70,18 +68,6 @@ export async function GET(
     const hashtags = searchParams.getAll('hashtags').filter(h => h.trim());
     const keywords = searchParams.getAll('keywords').filter(k => k.trim());
 
-    console.log('VC Filter params:', {
-      limit,
-      minFollowers,
-      maxFollowers,
-      minActivity,
-      minHashtagFrequency,
-      users,
-      hashtags,
-      keywords,
-    });
-
-    // Build query: Filter users FIRST for VC analysis
     let query = `
       MATCH (u:User)
       WHERE u.followers >= $minFollowers
@@ -89,7 +75,6 @@ export async function GET(
         AND u.following IS NOT NULL
     `;
 
-    // Add user filter if provided (filter by specific users)
     if (users.length > 0) {
       query += `
         AND u.screen_name IN $users
@@ -105,7 +90,6 @@ export async function GET(
       WITH u, t
     `;
 
-    // Add keyword search if provided (match ANY keyword in tweet text)
     if (keywords.length > 0) {
       const keywordConditions = keywords
         .map((_, idx) => `toLower(t.text) CONTAINS toLower($keyword${idx})`)
@@ -115,7 +99,6 @@ export async function GET(
       `;
     }
 
-    // Add hashtag filter if provided (match ANY hashtag)
     if (hashtags.length > 0) {
       query += `
         ${keywords.length > 0 ? 'AND' : 'WHERE'} EXISTS {
@@ -142,25 +125,21 @@ export async function GET(
              mentions
     `;
 
-    // Build parameters object with individual keyword parameters
     const params: any = {
       limit: neo4j.int(limit),
       minFollowers: neo4j.int(minFollowers),
       maxFollowers: neo4j.int(maxFollowers),
       minActivity: neo4j.int(minActivity),
       minHashtagFrequency: neo4j.int(minHashtagFrequency),
-      users, // Pass users array directly
-      hashtags, // Pass hashtags array directly
+      users,
+      hashtags,
     };
 
-    // Add individual keyword parameters
     keywords.forEach((keyword, idx) => {
       params[`keyword${idx}`] = keyword;
     });
 
     const result = await read(query, params);
-
-    console.log(`Query returned ${result.length} results`);
 
     const nodes = new Map<string, GraphNode>();
     const links: GraphLink[] = [];
@@ -171,7 +150,6 @@ export async function GET(
       const hashtags: Neo4jNode[] = record.hashtags || [];
       const mentions: Neo4jNode[] = record.mentions || [];
 
-      // Add user node
       const userId = `user-${user.properties.screen_name}`;
       if (!nodes.has(userId)) {
         nodes.set(userId, {
@@ -183,7 +161,6 @@ export async function GET(
         });
       }
 
-      // Add tweet node
       const tweetId = `tweet-${toJsValue(tweet.properties.id, true)}`;
       if (!nodes.has(tweetId)) {
         nodes.set(tweetId, {
@@ -196,14 +173,12 @@ export async function GET(
         });
       }
 
-      // User posts tweet link
       links.push({
         source: userId,
         target: tweetId,
         type: 'posts',
       });
 
-      // Add hashtag nodes and links
       hashtags.forEach((h: Neo4jNode) => {
         if (h && h.properties) {
           const hashtagId = `hashtag-${h.properties.name}`;
@@ -223,25 +198,19 @@ export async function GET(
         }
       });
 
-      // Add mention links (apply same VC filters as main users)
       mentions.forEach((m: Neo4jNode) => {
         if (m && m.properties) {
           const mentionFollowers = toJsValue(m.properties.followers) || 0;
 
-          // Apply VC filters - skip mentions that don't meet criteria
           if (
             mentionFollowers < minFollowers ||
             mentionFollowers > maxFollowers
           ) {
-            console.log(
-              `Skipping mention ${m.properties.screen_name} with ${mentionFollowers} followers (range: ${minFollowers}-${maxFollowers})`
-            );
-            return; // Skip this mention entirely
+            return;
           }
 
           const mentionId = `user-${m.properties.screen_name}`;
 
-          // Only add node and link if user passes filters
           if (!nodes.has(mentionId)) {
             nodes.set(mentionId, {
               id: mentionId,
@@ -260,28 +229,6 @@ export async function GET(
         }
       });
     });
-
-    const userNodes = Array.from(nodes.values()).filter(
-      (n) => n.type === 'user'
-    );
-    const tweetNodes = Array.from(nodes.values()).filter(
-      (n) => n.type === 'tweet'
-    );
-    const hashtagNodes = Array.from(nodes.values()).filter(
-      (n) => n.type === 'hashtag'
-    );
-
-    console.log(
-      `VC Analysis Result: ${userNodes.length} users, ${tweetNodes.length} tweets, ${hashtagNodes.length} hashtags, ${links.length} links`
-    );
-    if (userNodes.length > 0) {
-      const followerCounts = userNodes
-        .map((u) => u.followersCount || 0)
-        .sort((a, b) => a - b);
-      console.log(
-        `User follower range: ${followerCounts[0]} - ${followerCounts[followerCounts.length - 1]}`
-      );
-    }
 
     return NextResponse.json({
       nodes: Array.from(nodes.values()),

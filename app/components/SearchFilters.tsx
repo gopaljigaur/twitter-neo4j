@@ -245,7 +245,7 @@ export default function SearchFilters({
 
         <div className="border-t pt-4">
           <p className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wide">
-            VC Analysis Filters
+            Advanced Filters
           </p>
 
           <div className="space-y-4">
@@ -261,7 +261,7 @@ export default function SearchFilters({
                 className="w-full"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Find innovators discussing specific topics
+                Find users discussing specific topics
               </p>
             </div>
 

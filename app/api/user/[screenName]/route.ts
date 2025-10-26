@@ -3,11 +3,10 @@ import neo4j from 'neo4j-driver';
 import { read } from '@/lib/neo4j';
 import { User } from '@/types';
 
-// Helper function to convert Neo4j Integer to JavaScript number
+// Convert Neo4j Integer to JS number
 function toNumber(value: any): number {
   if (value === null || value === undefined) return 0;
 
-  // Handle Neo4j Integer objects
   if (typeof value === 'object' && ('low' in value || 'high' in value)) {
     return neo4j.int(value).toNumber();
   }
@@ -15,11 +14,10 @@ function toNumber(value: any): number {
   return Number(value) || 0;
 }
 
-// Helper function to convert Neo4j Integer to JavaScript number or string
+// Convert Neo4j Integer to JS number or string
 function toJsValue(value: any, asString = false): any {
   if (value === null || value === undefined) return value;
 
-  // Handle Neo4j Integer objects
   if (typeof value === 'object' && ('low' in value || 'high' in value)) {
     const intValue = neo4j.int(value);
     return asString ? intValue.toString() : intValue.toNumber();
@@ -28,16 +26,15 @@ function toJsValue(value: any, asString = false): any {
   return value;
 }
 
-// Helper function to convert Neo4j DateTime to ISO string
+// Convert Neo4j DateTime to ISO string
 function toDateString(dateObj: any): string {
   if (!dateObj || typeof dateObj !== 'object') return '';
 
   try {
-    // Handle Neo4j DateTime object format
     if (dateObj.year) {
       const date = new Date(
         toJsValue(dateObj.year),
-        toJsValue(dateObj.month) - 1, // JS months are 0-indexed
+        toJsValue(dateObj.month) - 1,
         toJsValue(dateObj.day),
         toJsValue(dateObj.hour) || 0,
         toJsValue(dateObj.minute) || 0,
@@ -98,7 +95,6 @@ export async function GET(
 
     const user = result[0].user;
 
-    // Convert Neo4j Integers to JavaScript numbers
     const convertedUser: User = {
       screenName: user.screenName,
       name: user.name,

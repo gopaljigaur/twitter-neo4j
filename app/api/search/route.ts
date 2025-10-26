@@ -8,11 +8,10 @@ import {
   TweetSearchResult,
 } from '@/types';
 
-// Helper function to convert Neo4j Integer to JavaScript number
+// Convert Neo4j Integer to JS number
 function toNumber(value: any): number {
   if (value === null || value === undefined) return 0;
 
-  // Handle Neo4j Integer objects
   if (typeof value === 'object' && ('low' in value || 'high' in value)) {
     return neo4j.int(value).toNumber();
   }

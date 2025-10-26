@@ -80,13 +80,13 @@ export interface GraphData {
   links: GraphLink[];
 }
 
-// Filter types - VC-focused for finding early-stage innovators
+// Filter types for network graph
 export interface Filters {
-  minFollowers: number; // Minimum audience size
-  maxFollowers: number; // Maximum audience (find emerging voices)
-  minActivity: number; // Minimum number of tweets (active contributors)
+  minFollowers: number; // Minimum follower count
+  maxFollowers: number; // Maximum follower count
+  minActivity: number; // Minimum number of tweets
   minHashtagFrequency: number; // Minimum hashtag usage frequency
-  users: string[]; // Filter by specific users (show tweets from/mentioning these users)
+  users: string[]; // Filter by specific users
   hashtags: string[]; // Filter by tweets with these hashtags
   keywords: string[]; // Search tweet text for these keywords
   limit: number; // Number of tweets to show
