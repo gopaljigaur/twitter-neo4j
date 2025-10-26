@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { Eye, Highlighter, ExternalLink, X, User as UserIcon, Heart } from 'lucide-react';
+import { Eye, Highlighter, ExternalLink, X, User as UserIcon, Heart, ArrowLeft } from 'lucide-react';
 import { TweetDetailProps } from '@/types';
 import { Button } from './ui/button';
 import TweetCard from './TweetCard';
@@ -9,6 +9,8 @@ import TweetCard from './TweetCard';
 export default function TweetDetail({
   tweet,
   onClose,
+  onBack,
+  showBack,
   onUserClick,
   onHashtagClick,
   onViewInGraph,
@@ -64,10 +66,17 @@ export default function TweetDetail({
   const twitterUrl = `https://twitter.com/i/status/${tweetId}`;
 
   return (
-    <div className="fixed inset-0 bg-background/80 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
-      <div className="bg-card rounded-lg shadow-lg max-w-2xl w-full max-h-[85vh] overflow-y-auto border">
+    <div className="fixed inset-0 flex items-center justify-center p-4 z-[51]">
+      <div className="bg-card rounded-lg shadow-lg max-w-2xl w-full max-h-[85vh] overflow-y-auto border animate-fadeIn" onClick={(e) => e.stopPropagation()}>
         <div className="sticky top-0 bg-card border-b px-6 py-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Tweet Details</h2>
+          <div className="flex items-center gap-2">
+            {showBack && onBack && (
+              <Button onClick={onBack} variant="ghost" size="icon">
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+            )}
+            <h2 className="text-lg font-semibold">Tweet Details</h2>
+          </div>
           <Button onClick={onClose} variant="ghost" size="icon">
             <X className="w-4 h-4" />
           </Button>

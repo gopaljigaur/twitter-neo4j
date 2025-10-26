@@ -392,7 +392,7 @@ export default function GraphFilters({
                   <HelpCircle className="w-3 h-3 text-muted-foreground" />
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Minimum times a hashtag must be used to show only popular hashtags</p>
+                  <p>Hide hashtags from the graph that are used less than this many times. Higher values show only the most popular hashtags.</p>
                 </TooltipContent>
               </Tooltip>
             </div>

@@ -12,6 +12,7 @@ import {
   Eye,
   Highlighter,
   ExternalLink,
+  ArrowLeft,
 } from 'lucide-react';
 import { UserDetailProps, User } from '@/types';
 import { Button } from './ui/button';
@@ -21,8 +22,11 @@ import TweetCard from './TweetCard';
 export default function UserDetail({
   screenName,
   onClose,
+  onBack,
+  showBack,
   onUserClick,
   onHashtagClick,
+  onTweetClick,
   onViewInGraph,
   onHighlight,
 }: UserDetailProps) {
@@ -108,10 +112,17 @@ export default function UserDetail({
   if (!screenName) return null;
 
   return (
-    <div className="fixed inset-0 bg-background/80 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
-      <div className="bg-card rounded-lg shadow-lg max-w-2xl w-full max-h-[85vh] overflow-y-auto border">
+    <div className="fixed inset-0 flex items-center justify-center p-4 z-[51]">
+      <div className="bg-card rounded-lg shadow-lg max-w-2xl w-full max-h-[85vh] overflow-y-auto border animate-fadeIn" onClick={(e) => e.stopPropagation()}>
         <div className="sticky top-0 bg-card border-b px-6 py-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">User Details</h2>
+          <div className="flex items-center gap-2">
+            {showBack && onBack && (
+              <Button onClick={onBack} variant="ghost" size="icon">
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+            )}
+            <h2 className="text-lg font-semibold">User Details</h2>
+          </div>
           <Button onClick={onClose} variant="ghost" size="icon">
             <X className="w-4 h-4" />
           </Button>
@@ -242,7 +253,18 @@ export default function UserDetail({
                         .map((tweet, idx) => (
                           <div
                             key={idx}
-                            className="border rounded-md p-4 text-sm"
+                            className="border rounded-md p-4 text-sm cursor-pointer hover:bg-muted/50 transition-colors"
+                            onClick={() => {
+                              onTweetClick?.({
+                                id: tweet.id,
+                                text: tweet.text,
+                                favoriteCount: tweet.favoriteCount,
+                                createdAt: tweet.createdAt,
+                                name: user.name,
+                                screenName: user.screenName,
+                                hashtags: tweet.hashtags,
+                              });
+                            }}
                           >
                             {/* User info header */}
                             <div className="flex items-center gap-2 mb-2">
@@ -271,7 +293,10 @@ export default function UserDetail({
                                     {user.name}
                                   </p>
                                   <button
-                                    onClick={() => onUserClick?.(user.screenName)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onUserClick?.(user.screenName);
+                                    }}
                                     className="text-xs text-blue-500 hover:text-blue-600 truncate hover:underline"
                                   >
                                     @{user.screenName}
@@ -279,7 +304,8 @@ export default function UserDetail({
                                 </div>
                               </div>
                               <button
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   // Handle Neo4j Integer or regular string/number
                                   let tweetIdStr = '';
                                   if (tweet.id && typeof tweet.id === 'object' && 'toNumber' in tweet.id) {

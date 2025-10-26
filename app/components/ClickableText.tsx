@@ -79,7 +79,10 @@ export default function ClickableText({
           return (
             <button
               key={index}
-              onClick={() => onUserClick(part.text.replace('@', ''))}
+              onClick={(e) => {
+                e.stopPropagation();
+                onUserClick(part.text.replace('@', ''));
+              }}
               className="text-blue-500 hover:text-blue-600 hover:underline font-medium cursor-pointer bg-transparent border-none p-0"
             >
               {part.text}
@@ -89,7 +92,10 @@ export default function ClickableText({
           return (
             <button
               key={index}
-              onClick={() => onHashtagClick(part.text.replace('#', ''))}
+              onClick={(e) => {
+                e.stopPropagation();
+                onHashtagClick(part.text.replace('#', ''));
+              }}
               className="text-purple-500 hover:text-purple-600 hover:underline font-medium cursor-pointer bg-transparent border-none p-0"
             >
               {part.text}

@@ -10,7 +10,7 @@ import HashtagDetail from './components/HashtagDetail';
 import TweetDetail from './components/TweetDetail';
 import { ThemeToggle } from './components/theme-toggle';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
-import { Filters, GraphNode } from '@/types';
+import { Filters, GraphNode, NavigationStackItem } from '@/types';
 
 export default function Home() {
   const graphRef = useRef<HTMLDivElement>(null);
@@ -31,9 +31,58 @@ export default function Home() {
     null
   );
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
+  const [navigationStack, setNavigationStack] = useState<NavigationStackItem[]>([]);
 
   const scrollToGraph = () => {
     graphRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+
+  // Navigation stack helpers
+  const pushToNavigationStack = (type: 'user' | 'hashtag' | 'tweet', data: any) => {
+    // Save current state to stack before navigating
+    if (selectedUser) {
+      setNavigationStack(prev => [...prev, { type: 'user', data: selectedUser }]);
+    } else if (selectedHashtag) {
+      setNavigationStack(prev => [...prev, { type: 'hashtag', data: selectedHashtag }]);
+    } else if (selectedTweet) {
+      setNavigationStack(prev => [...prev, { type: 'tweet', data: selectedTweet }]);
+    }
+
+    // Navigate to new modal
+    navigateToModal(type, data);
+  };
+
+  const navigateToModal = (type: 'user' | 'hashtag' | 'tweet', data: any) => {
+    if (type === 'user') {
+      setSelectedUser(data);
+      setSelectedHashtag(null);
+      setSelectedTweet(null);
+    } else if (type === 'hashtag') {
+      setSelectedHashtag(data);
+      setSelectedUser(null);
+      setSelectedTweet(null);
+    } else if (type === 'tweet') {
+      setSelectedTweet(data);
+      setSelectedUser(null);
+      setSelectedHashtag(null);
+    }
+  };
+
+  const handleBackNavigation = () => {
+    if (navigationStack.length === 0) return;
+
+    const newStack = [...navigationStack];
+    const previousItem = newStack.pop()!;
+    setNavigationStack(newStack);
+
+    navigateToModal(previousItem.type, previousItem.data);
+  };
+
+  const closeAllModals = () => {
+    setSelectedUser(null);
+    setSelectedHashtag(null);
+    setSelectedTweet(null);
+    setNavigationStack([]);
   };
 
   const handleFilterChange = (newFilters: Filters) => {
@@ -41,44 +90,51 @@ export default function Home() {
   };
 
   const handleNodeClick = (node: GraphNode) => {
+    // When clicking from graph, don't push to stack (start fresh navigation)
     if (node.type === 'user') {
-      setSelectedUser(node.label);
-      setSelectedHashtag(null);
-      setSelectedTweet(null);
+      navigateToModal('user', node.label);
     } else if (node.type === 'tweet') {
-      setSelectedTweet(node);
-      setSelectedUser(null);
-      setSelectedHashtag(null);
+      navigateToModal('tweet', node);
     } else if (node.type === 'hashtag') {
       const hashtagName = node.label.replace('#', '');
-      setSelectedHashtag(hashtagName);
-      setSelectedUser(null);
-      setSelectedTweet(null);
+      navigateToModal('hashtag', hashtagName);
     }
   };
 
   const handleUserClick = (username: string) => {
-    setSelectedUser(username);
-    setSelectedHashtag(null);
-    setSelectedTweet(null);
+    // When clicking from within a modal, push current state to stack
+    pushToNavigationStack('user', username);
   };
 
   const handleHashtagClick = (hashtag: string) => {
-    setSelectedHashtag(hashtag);
-    setSelectedUser(null);
-    setSelectedTweet(null);
+    // When clicking from within a modal, push current state to stack
+    pushToNavigationStack('hashtag', hashtag);
+  };
+
+  const handleTweetClick = (tweet: any) => {
+    // Convert tweet data to GraphNode format
+    const tweetNode: GraphNode = {
+      id: tweet.id.startsWith('tweet-') ? tweet.id : `tweet-${tweet.id}`,
+      label: tweet.text?.substring(0, 30) + '...' || 'Tweet',
+      type: 'tweet',
+      text: tweet.text,
+      favoriteCount: tweet.favoriteCount,
+      createdAt: tweet.createdAt,
+      name: tweet.name,
+      screenName: tweet.screenName,
+    };
+    // When clicking from within a modal, push current state to stack
+    pushToNavigationStack('tweet', tweetNode);
   };
 
   const handleViewUserInGraph = (username: string) => {
-    // Close modal and update graph to show user's network
-    setSelectedUser(null);
-    setSelectedHashtag(null);
-    setSelectedTweet(null);
+    // Close all modals and clear navigation stack
+    closeAllModals();
     setFocusedNodeId(`user-${username}`);
     setHighlightedNodeId(`user-${username}`);
     setFilters((prev) => ({
       ...prev,
-      users: [username], // Filter by this user
+      users: [username],
       hashtags: [],
       keywords: [],
     }));
@@ -86,25 +142,22 @@ export default function Home() {
   };
 
   const handleViewHashtagInGraph = (hashtag: string) => {
-    // Close modal and update graph to show hashtag's network
-    setSelectedUser(null);
-    setSelectedHashtag(null);
-    setSelectedTweet(null);
+    // Close all modals and clear navigation stack
+    closeAllModals();
     setFocusedNodeId(`hashtag-${hashtag}`);
     setHighlightedNodeId(`hashtag-${hashtag}`);
     setFilters((prev) => ({
       ...prev,
       users: [],
-      hashtags: [hashtag], // Filter by this hashtag
+      hashtags: [hashtag],
       keywords: [],
     }));
     scrollToGraph();
   };
 
   const handleViewTweetInGraph = (tweet: GraphNode) => {
-    setSelectedUser(null);
-    setSelectedHashtag(null);
-    setSelectedTweet(null);
+    // Close all modals and clear navigation stack
+    closeAllModals();
     const nodeId = tweet.id.startsWith('tweet-') ? tweet.id : `tweet-${tweet.id}`;
     setFocusedNodeId(nodeId);
     setHighlightedNodeId(nodeId);
@@ -120,8 +173,8 @@ export default function Home() {
   };
 
   const handleHighlightUser = (username: string) => {
-    // Close modal, highlight and focus on the user
-    setSelectedUser(null);
+    // Close all modals and clear navigation stack
+    closeAllModals();
     const nodeId = `user-${username}`;
     setHighlightedNodeId(nodeId);
     setFocusedNodeId(nodeId);
@@ -129,8 +182,8 @@ export default function Home() {
   };
 
   const handleHighlightHashtag = (hashtag: string) => {
-    // Close modal, highlight and focus on the hashtag
-    setSelectedHashtag(null);
+    // Close all modals and clear navigation stack
+    closeAllModals();
     const nodeId = `hashtag-${hashtag}`;
     setHighlightedNodeId(nodeId);
     setFocusedNodeId(nodeId);
@@ -138,7 +191,8 @@ export default function Home() {
   };
 
   const handleHighlightTweet = (tweetId: string) => {
-    setSelectedTweet(null);
+    // Close all modals and clear navigation stack
+    closeAllModals();
     const nodeId = tweetId.startsWith('tweet-') ? tweetId : `tweet-${tweetId}`;
     setHighlightedNodeId(nodeId);
     setFocusedNodeId(nodeId);
@@ -227,12 +281,23 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Persistent backdrop for all modals */}
+      {(selectedUser || selectedHashtag || selectedTweet) && (
+        <div
+          className="fixed inset-0 bg-background/80 backdrop-blur-xs z-50 animate-fadeIn"
+          onClick={closeAllModals}
+        />
+      )}
+
       {selectedUser && (
         <UserDetail
           screenName={selectedUser}
-          onClose={() => setSelectedUser(null)}
+          onClose={closeAllModals}
+          onBack={handleBackNavigation}
+          showBack={navigationStack.length > 0}
           onUserClick={handleUserClick}
           onHashtagClick={handleHashtagClick}
+          onTweetClick={handleTweetClick}
           onViewInGraph={() => handleViewUserInGraph(selectedUser)}
           onHighlight={() => handleHighlightUser(selectedUser)}
         />
@@ -241,9 +306,12 @@ export default function Home() {
       {selectedHashtag && (
         <HashtagDetail
           hashtagName={selectedHashtag}
-          onClose={() => setSelectedHashtag(null)}
+          onClose={closeAllModals}
+          onBack={handleBackNavigation}
+          showBack={navigationStack.length > 0}
           onUserClick={handleUserClick}
           onHashtagClick={handleHashtagClick}
+          onTweetClick={handleTweetClick}
           onViewInGraph={() => handleViewHashtagInGraph(selectedHashtag)}
           onHighlight={() => handleHighlightHashtag(selectedHashtag)}
         />
@@ -252,7 +320,9 @@ export default function Home() {
       {selectedTweet && (
         <TweetDetail
           tweet={selectedTweet}
-          onClose={() => setSelectedTweet(null)}
+          onClose={closeAllModals}
+          onBack={handleBackNavigation}
+          showBack={navigationStack.length > 0}
           onUserClick={handleUserClick}
           onHashtagClick={handleHashtagClick}
           onViewInGraph={() => handleViewTweetInGraph(selectedTweet)}

@@ -12,6 +12,7 @@ import {
   Heart,
   User as UserIcon,
   ExternalLink,
+  ArrowLeft,
 } from 'lucide-react';
 import { HashtagDetailProps, Hashtag } from '@/types';
 import { Button } from './ui/button';
@@ -21,8 +22,11 @@ import TweetCard from './TweetCard';
 export default function HashtagDetail({
   hashtagName,
   onClose,
+  onBack,
+  showBack,
   onUserClick,
   onHashtagClick,
+  onTweetClick,
   onViewInGraph,
   onHighlight,
 }: HashtagDetailProps) {
@@ -30,6 +34,34 @@ export default function HashtagDetail({
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [visibleTweets, setVisibleTweets] = useState<number>(5);
+
+  const formatDate = (dateObj: any): string => {
+    if (!dateObj) return '';
+    try {
+      // Handle Neo4j DateTime object format
+      if (typeof dateObj === 'object' && dateObj.year) {
+        const date = new Date(
+          dateObj.year,
+          dateObj.month - 1, // JS months are 0-indexed
+          dateObj.day,
+          dateObj.hour || 0,
+          dateObj.minute || 0,
+          dateObj.second || 0
+        );
+        return date.toLocaleDateString();
+      }
+      // Handle string format as fallback
+      if (typeof dateObj === 'string') {
+        const date = new Date(dateObj);
+        if (!isNaN(date.getTime())) {
+          return date.toLocaleDateString();
+        }
+      }
+      return '';
+    } catch {
+      return '';
+    }
+  };
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -67,10 +99,17 @@ export default function HashtagDetail({
   if (!hashtagName) return null;
 
   return (
-    <div className="fixed inset-0 bg-background/80 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fadeIn">
-      <div className="bg-card rounded-lg shadow-lg max-w-2xl w-full max-h-[85vh] overflow-y-auto border">
+    <div className="fixed inset-0 flex items-center justify-center p-4 z-[51]">
+      <div className="bg-card rounded-lg shadow-lg max-w-2xl w-full max-h-[85vh] overflow-y-auto border animate-fadeIn" onClick={(e) => e.stopPropagation()}>
         <div className="sticky top-0 bg-card border-b px-6 py-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Hashtag Details</h2>
+          <div className="flex items-center gap-2">
+            {showBack && onBack && (
+              <Button onClick={onBack} variant="ghost" size="icon">
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+            )}
+            <h2 className="text-lg font-semibold">Hashtag Details</h2>
+          </div>
           <Button onClick={onClose} variant="ghost" size="icon">
             <X className="w-4 h-4" />
           </Button>
@@ -180,7 +219,17 @@ export default function HashtagDetail({
                         .map((tweet, idx) => (
                           <div
                             key={idx}
-                            className="border rounded-md p-4 text-sm"
+                            className="border rounded-md p-4 text-sm cursor-pointer hover:bg-muted/50 transition-colors"
+                            onClick={() => {
+                              onTweetClick?.({
+                                id: tweet.id,
+                                text: tweet.text,
+                                favoriteCount: tweet.favoriteCount,
+                                createdAt: tweet.createdAt,
+                                name: tweet.userName || tweet.user,
+                                screenName: tweet.user,
+                              });
+                            }}
                           >
                             {/* User info header */}
                             <div className="flex items-center gap-2 mb-2">
@@ -193,7 +242,10 @@ export default function HashtagDetail({
                                     {tweet.userName || tweet.user}
                                   </p>
                                   <button
-                                    onClick={() => onUserClick?.(tweet.user)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onUserClick?.(tweet.user);
+                                    }}
                                     className="text-xs text-blue-500 hover:text-blue-600 truncate hover:underline"
                                   >
                                     @{tweet.user}
@@ -201,7 +253,8 @@ export default function HashtagDetail({
                                 </div>
                               </div>
                               <button
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   // Handle Neo4j Integer or regular string/number
                                   let tweetIdStr = '';
                                   if (tweet.id && typeof tweet.id === 'object' && 'toNumber' in tweet.id) {
@@ -241,6 +294,9 @@ export default function HashtagDetail({
                                 <Heart className="w-3 h-3" />
                                 <span>{(tweet.favoriteCount || 0).toLocaleString()}</span>
                               </div>
+                              {formatDate(tweet.createdAt) && (
+                                <span>{formatDate(tweet.createdAt)}</span>
+                              )}
                             </div>
                           </div>
                         ))}

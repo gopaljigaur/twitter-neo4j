@@ -313,6 +313,12 @@ export default function NetworkGraph({
         label: `Min Activity: ${filters.minActivity}`,
       });
     }
+    if (filters.minHashtagFrequency > 1) {
+      active.push({
+        type: 'minHashtagFrequency',
+        label: `Min Hashtag Uses: ${filters.minHashtagFrequency}`,
+      });
+    }
     // Show each user as a separate chip
     filters.users.forEach((user) => {
       if (user) {
@@ -363,6 +369,9 @@ export default function NetworkGraph({
         break;
       case 'minActivity':
         newFilters.minActivity = 1;
+        break;
+      case 'minHashtagFrequency':
+        newFilters.minHashtagFrequency = 1;
         break;
       case 'user':
         // Remove specific user from array
@@ -416,25 +425,27 @@ export default function NetworkGraph({
             </button>
           )}
           {activeFilters.length > 0 && (
-            <div className="flex flex-wrap gap-2 items-center">
-              <span className="text-xs text-muted-foreground font-medium">
+            <div className="flex items-center gap-2 max-w-md">
+              <span className="text-xs text-muted-foreground font-medium shrink-0">
                 Filters:
               </span>
-              {activeFilters.map((filter, index) => (
-                <span
-                  key={index}
-                  className="inline-flex items-center gap-1 rounded-full bg-blue-100 dark:bg-blue-900 pl-2.5 pr-1.5 py-0.5 text-xs font-medium text-blue-800 dark:text-blue-200"
-                >
-                  {filter.label}
-                  <button
-                    onClick={() => handleRemoveFilter(filter.type, filter.value)}
-                    className="hover:bg-blue-200 dark:hover:bg-blue-800 rounded-full p-0.5 transition-colors -mr-0.5"
-                    aria-label={`Remove ${filter.label}`}
+              <div className="flex gap-2 items-center overflow-x-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+                {activeFilters.map((filter, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center gap-1 rounded-full bg-blue-100 dark:bg-blue-900 pl-2.5 pr-1.5 py-0.5 text-xs font-medium text-blue-800 dark:text-blue-200 shrink-0"
                   >
-                    <X className="w-3 h-3" />
-                  </button>
-                </span>
-              ))}
+                    {filter.label}
+                    <button
+                      onClick={() => handleRemoveFilter(filter.type, filter.value)}
+                      className="hover:bg-blue-200 dark:hover:bg-blue-800 rounded-full p-0.5 transition-colors -mr-0.5"
+                      aria-label={`Remove ${filter.label}`}
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
             </div>
           )}
         </div>

@@ -89,7 +89,7 @@ The dashboard has three main sections stacked vertically:
    - Left: Filter controls (follower range, activity, hashtag frequency, node limit)
    - Right: Force-directed graph showing relationships
 
-![Dashboard Overview](./docs/screenshots/dashboard-overview.png)
+![Dashboard Overview](./docs/screenshots/dashboard-overview.jpeg)
 
 ### 1. Network Graph Visualization
 

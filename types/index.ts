@@ -146,11 +146,22 @@ export interface Hashtag {
   }>;
 }
 
+// Navigation stack types
+export type ModalType = 'user' | 'hashtag' | 'tweet';
+
+export interface NavigationStackItem {
+  type: ModalType;
+  data: any; // user: string, hashtag: string, tweet: GraphNode
+}
+
 export interface UserDetailProps {
   screenName: string | null;
   onClose: () => void;
+  onBack?: () => void;
+  showBack?: boolean;
   onUserClick?: (username: string) => void;
   onHashtagClick?: (hashtag: string) => void;
+  onTweetClick?: (tweet: any) => void;
   onViewInGraph?: () => void;
   onHighlight?: () => void;
 }
@@ -158,8 +169,11 @@ export interface UserDetailProps {
 export interface HashtagDetailProps {
   hashtagName: string | null;
   onClose: () => void;
+  onBack?: () => void;
+  showBack?: boolean;
   onUserClick?: (username: string) => void;
   onHashtagClick?: (hashtag: string) => void;
+  onTweetClick?: (tweet: any) => void;
   onViewInGraph?: () => void;
   onHighlight?: () => void;
 }
@@ -167,6 +181,8 @@ export interface HashtagDetailProps {
 export interface TweetDetailProps {
   tweet: GraphNode | null;
   onClose: () => void;
+  onBack?: () => void;
+  showBack?: boolean;
   onUserClick?: (username: string) => void;
   onHashtagClick?: (hashtag: string) => void;
   onViewInGraph?: () => void;

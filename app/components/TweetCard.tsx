@@ -82,7 +82,10 @@ export default function TweetCard({
 
       {isLongTweet && (
         <button
-          onClick={() => setIsExpanded(!isExpanded)}
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsExpanded(!isExpanded);
+          }}
           className="text-sm text-blue-500 hover:text-blue-600 font-medium"
         >
           {isExpanded ? 'Show less' : 'Show more'}
