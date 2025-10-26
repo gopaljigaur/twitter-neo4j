@@ -90,6 +90,10 @@ export default function Home() {
   };
 
   const handleNodeClick = (node: GraphNode) => {
+    // Highlight the clicked node
+    setHighlightedNodeId(node.id);
+    setFocusedNodeId(node.id);
+
     // When clicking from graph, don't push to stack (start fresh navigation)
     if (node.type === 'user') {
       navigateToModal('user', node.label);
@@ -221,7 +225,7 @@ export default function Home() {
     <main className="min-h-screen bg-background">
       <div className="border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center justify-between">
+          <div className="flex items-start justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold tracking-tight">
                 Neo4j Twitter Network Dashboard
@@ -253,16 +257,16 @@ export default function Home() {
             <CardHeader>
               <CardTitle>Network Graph</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
-                <div className="lg:col-span-1 flex flex-col">
+            <CardContent className="p-6 pt-0">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-1">
                   <GraphFilters
                     onFilterChange={handleFilterChange}
                     currentFilters={filters}
                   />
                 </div>
 
-                <div className="lg:col-span-2 flex flex-col">
+                <div className="lg:col-span-2">
                   <NetworkGraph
                     filters={filters}
                     onNodeClick={handleNodeClick}

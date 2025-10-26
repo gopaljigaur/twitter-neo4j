@@ -39,6 +39,8 @@ export default function NetworkGraph({
   const containerRef = useRef<HTMLDivElement>(null);
   const hasInitialZoomedRef = useRef(false);
   const [dimensions, setDimensions] = useState({ width: 800, height: 550 });
+  const [resizeGeneration, setResizeGeneration] = useState(0);
+  const previousWidthRef = useRef(800);
 
   const fetchNetworkData = useCallback(async () => {
     try {
@@ -108,6 +110,12 @@ export default function NetworkGraph({
     if (containerRef.current) {
       const { width, height } = containerRef.current.getBoundingClientRect();
       setDimensions({ width, height });
+
+      // Increment resize generation if width changed significantly (more than 50px)
+      if (Math.abs(width - previousWidthRef.current) > 50) {
+        previousWidthRef.current = width;
+        setResizeGeneration(prev => prev + 1);
+      }
     }
   }, []);
 
@@ -116,11 +124,22 @@ export default function NetworkGraph({
 
     updateDimensions();
 
-    const resizeObserver = new ResizeObserver(updateDimensions);
-    resizeObserver.observe(containerRef.current);
+    const resizeObserver = new ResizeObserver(() => {
+      requestAnimationFrame(updateDimensions);
+    });
+
+    const currentContainer = containerRef.current;
+    resizeObserver.observe(currentContainer);
+
+    const handleResize = () => {
+      updateDimensions();
+    };
+
+    window.addEventListener('resize', handleResize);
 
     return () => {
       resizeObserver.disconnect();
+      window.removeEventListener('resize', handleResize);
     };
   }, [updateDimensions]);
 
@@ -397,7 +416,7 @@ export default function NetworkGraph({
   const activeFilters = getActiveFilters();
 
   return (
-    <div className="flex flex-col gap-4 min-h-0 flex-1">
+    <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3 text-xs">
           <div className="flex items-center gap-1.5">
@@ -453,11 +472,13 @@ export default function NetworkGraph({
 
       <div
         ref={containerRef}
-        className={`border rounded-md overflow-hidden bg-card flex-1 min-h-0 transition-all duration-1000 ease-out ${
+        style={{ width: '100%' }}
+        className={`force-graph-container border rounded-md overflow-hidden bg-card h-[400px] md:h-[600px] lg:h-[700px] transition-all duration-1000 ease-out ${
           isPulsing ? 'ring-2 ring-primary ring-opacity-50' : ''
         }`}
       >
         <ForceGraph2D
+          key={resizeGeneration}
           ref={fgRef}
           width={dimensions.width}
           height={dimensions.height}
@@ -488,6 +509,15 @@ export default function NetworkGraph({
           }}
           linkWidth={2}
           onNodeClick={(node: any) => handleNodeClick(node as GraphNode)}
+          onNodeHover={(node: any) => {
+            if (containerRef.current) {
+              const canvas = containerRef.current.querySelector('canvas');
+              if (canvas) {
+                canvas.style.cursor = node ? 'pointer' : 'default';
+              }
+            }
+          }}
+          onBackgroundClick={onClearHighlight}
           onEngineStop={handleEngineStop}
           nodeCanvasObject={(
             node: any,
