@@ -1,0 +1,55 @@
+services:
+  neo4j:
+    image: neo4j:4.4
+    container_name: neo4j-twitter
+    ports:
+      - "7474:7474"  # HTTP
+      - "7687:7687"  # Bolt
+    environment:
+      # Set NEO4J_PASSWORD in .env file
+      - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD}
+      - NEO4J_dbms_memory_pagecache_size=512M
+      - NEO4J_dbms_memory_heap_initial__size=512M
+      - NEO4J_dbms_memory_heap_max__size=1G
+    volumes:
+      - neo4j-data:/data
+      - neo4j-logs:/logs
+      - ./scripts/init-neo4j.sh:/init-neo4j.sh:ro
+    # Custom entrypoint needed because .dump files MUST be loaded BEFORE Neo4j starts
+    entrypoint: ["/bin/bash", "/init-neo4j.sh"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider localhost:7474 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 90s
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: twitter-app
+    ports:
+      - "${WEBUI_PORT}:3000"
+    environment:
+      # Set all values in .env file (see .env.example)
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - NEO4J_URI=${NEO4J_URI}
+      - NEO4J_USERNAME=${NEO4J_USERNAME}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+      - NEO4J_DATABASE=${NEO4J_DATABASE}
+    depends_on:
+      neo4j:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider localhost:3000/api/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+volumes:
+  neo4j-data:
+  neo4j-logs:
