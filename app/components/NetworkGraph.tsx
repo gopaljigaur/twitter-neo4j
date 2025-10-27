@@ -156,7 +156,7 @@ export default function NetworkGraph({
       // Delay to ensure canvas is ready
       setTimeout(() => {
         if (fgRef.current) {
-          fgRef.current.zoomToFit(10, 20);
+          fgRef.current.zoomToFit(10, 100);
         }
       }, 50);
     }
@@ -191,7 +191,7 @@ export default function NetworkGraph({
   // Handle force simulation stabilization - zoom to fit when simulation stops
   const handleEngineStop = useCallback(() => {
     if (fgRef.current && !focusedNodeId && !hasUserInteractedRef.current) {
-      fgRef.current.zoomToFit(1000, 20);
+      fgRef.current.zoomToFit(1000, 50);
     }
   }, [focusedNodeId]);
 
