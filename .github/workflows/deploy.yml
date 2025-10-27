@@ -20,11 +20,11 @@ jobs:
             cd ${{ secrets.SERVER_PATH }}
             git pull origin main
 
-            echo "Building new images..."
-            docker compose build --no-cache
+            echo "Ensuring neo4j is running..."
+            docker compose up -d --wait neo4j
 
-            echo "Recreating containers and waiting for health checks..."
-            docker compose up -d --wait --force-recreate --remove-orphans
+            echo "Building and deploying app..."
+            docker compose up -d --build --no-deps --wait app
 
             echo "Cleaning up old images..."
             docker image prune -f
