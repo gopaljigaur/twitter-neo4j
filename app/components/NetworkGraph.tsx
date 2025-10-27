@@ -12,7 +12,7 @@ import dynamic from 'next/dynamic';
 import { Search, RefreshCw, X } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { NetworkGraphProps, GraphData, GraphNode } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
 
 const ForceGraph2D = dynamic(() => import('react-force-graph-2d'), {
@@ -34,10 +34,10 @@ export default function NetworkGraph({
   });
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [isPulsing, setIsPulsing] = useState(false);
   const fgRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const hasInitialZoomedRef = useRef(false);
+  const hasUserInteractedRef = useRef(false);
   const [dimensions, setDimensions] = useState({ width: 800, height: 550 });
   const [resizeGeneration, setResizeGeneration] = useState(0);
   const previousWidthRef = useRef(800);
@@ -46,6 +46,7 @@ export default function NetworkGraph({
     try {
       setLoading(true);
       hasInitialZoomedRef.current = false; // Reset zoom flag when fetching new data
+      hasUserInteractedRef.current = false; // Reset interaction flag when fetching new data
       const params = new URLSearchParams({
         limit: filters.limit.toString(),
         minFollowers: filters.minFollowers.toString(),
@@ -70,6 +71,7 @@ export default function NetworkGraph({
       });
 
       const response = await fetch(`/api/network?${params}`);
+      // @ts-ignore - Intentionally throwing error to be caught by catch block
       if (!response.ok) throw new Error('Failed to fetch network data');
       const data: GraphData = await response.json();
       setGraphData(data);
@@ -96,14 +98,6 @@ export default function NetworkGraph({
     }
   }, [graphData.nodes, highlightedNodeId, onClearHighlight]);
 
-  // Trigger pulse animation when focusing or highlighting a node from modal buttons
-  useEffect(() => {
-    if ((focusedNodeId || highlightedNodeId) && !loading) {
-      setIsPulsing(true);
-      const timer = setTimeout(() => setIsPulsing(false), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [focusedNodeId, highlightedNodeId, loading]);
 
   // Measure container dimensions
   const updateDimensions = useCallback(() => {
@@ -158,7 +152,7 @@ export default function NetworkGraph({
       !hasInitialZoomedRef.current
     ) {
       hasInitialZoomedRef.current = true;
-      fgRef.current.zoomToFit(10, 80); // Quick initial zoom
+      fgRef.current.zoomToFit(10, 20); // Quick initial zoom with less padding
     }
   }, [graphData]);
 
@@ -183,8 +177,8 @@ export default function NetworkGraph({
 
   // Handle force simulation stabilization - zoom to fit when simulation stops
   const handleEngineStop = useCallback(() => {
-    if (fgRef.current && !focusedNodeId) {
-      fgRef.current.zoomToFit(1000, 80);
+    if (fgRef.current && !focusedNodeId && !hasUserInteractedRef.current) {
+      fgRef.current.zoomToFit(1000, 20);
     }
   }, [focusedNodeId]);
 
@@ -232,20 +226,54 @@ export default function NetworkGraph({
     }
   };
 
+  const getNodeLabelColor = (node: GraphNode): string => {
+    if (theme === 'dark') {
+      // Lighter colors for dark mode
+      switch (node.type) {
+        case 'user':
+          return '#93C5FD'; // lighter blue
+        case 'tweet':
+          return '#34D399'; // lighter green
+        case 'hashtag':
+          return '#A78BFA'; // lighter purple
+        default:
+          return '#9CA3AF';
+      }
+    } else {
+      // Darker colors for light mode
+      switch (node.type) {
+        case 'user':
+          return '#2563EB'; // darker blue
+        case 'tweet':
+          return '#059669'; // darker green
+        case 'hashtag':
+          return '#7C3AED'; // darker purple
+        default:
+          return '#4B5563';
+      }
+    }
+  };
+
   const getNodeSize = (node: GraphNode): number => {
     switch (node.type) {
       case 'user':
         return Math.max(
           4,
-          Math.min(12, Math.log((node.followersCount || 0) + 1) * 2)
+          Math.min(8, Math.log((node.followersCount || 0) + 1) * 1.5)
         );
       case 'tweet':
         return Math.max(
           3,
-          Math.min(8, Math.log((node.favoriteCount || 0) + 1) * 1.5)
+          Math.min(9, Math.log((node.favoriteCount || 0) + 1) * 2.5)
         );
       case 'hashtag':
-        return 6;
+        // Size based on number of connections (how many times the hashtag is used)
+        const connections = graphData.links.filter(
+          (link: any) =>
+            (typeof link.source === 'object' ? link.source.id : link.source) === node.id ||
+            (typeof link.target === 'object' ? link.target.id : link.target) === node.id
+        ).length;
+        return Math.max(3, Math.min(10, Math.log(connections + 1) * 3));
       default:
         return 4;
     }
@@ -473,9 +501,7 @@ export default function NetworkGraph({
       <div
         ref={containerRef}
         style={{ width: '100%' }}
-        className={`force-graph-container border rounded-md overflow-hidden bg-card h-[400px] md:h-[600px] lg:h-[700px] transition-all duration-1000 ease-out ${
-          isPulsing ? 'ring-2 ring-primary ring-opacity-50' : ''
-        }`}
+        className="force-graph-container border rounded-md overflow-hidden bg-card h-[400px] md:h-[600px] lg:h-[700px]"
       >
         <ForceGraph2D
           key={resizeGeneration}
@@ -486,6 +512,15 @@ export default function NetworkGraph({
           graphData={graphData}
           warmupTicks={0}
           cooldownTime={0}
+          enableNodeDrag={true}
+          enableZoomInteraction={true}
+          enablePanInteraction={true}
+          onNodeDrag={() => {
+            hasUserInteractedRef.current = true;
+          }}
+          onZoom={() => {
+            hasUserInteractedRef.current = true;
+          }}
           nodeLabel={(node: any) => `${node.label} (${node.type})`}
           nodeColor={(node: any) => getNodeColor(node as GraphNode)}
           nodeVal={(node: any) => getNodeSize(node as GraphNode)}
@@ -555,7 +590,15 @@ export default function NetworkGraph({
 
             // Draw label
             if (globalScale > 1.5) {
-              ctx.fillStyle = theme === 'dark' ? '#fafafa' : '#18181b';
+              // Draw text stroke (outline) for readability
+              ctx.strokeStyle = theme === 'dark' ? 'rgba(10, 10, 10, 0.9)' : 'rgba(250, 250, 250, 0.9)';
+              ctx.lineWidth = 2;
+              ctx.lineJoin = 'round';
+              ctx.miterLimit = 2;
+              ctx.strokeText(label, node.x, node.y + size + fontSize);
+
+              // Draw text fill
+              ctx.fillStyle = getNodeLabelColor(graphNode);
               ctx.fillText(label, node.x, node.y + size + fontSize);
             }
 
