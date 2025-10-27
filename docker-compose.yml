@@ -50,7 +50,19 @@ services:
       timeout: 10s
       retries: 5
       start_period: 900s  # 15 minutes grace period for embedding generation on first run
+    labels:
+       caddy: neo4j.gopalji.me
+       caddy.reverse_proxy: "{{upstreams 3000}}"
+    networks:
+      - web
+      - default
 
 volumes:
   neo4j-data:
   neo4j-logs:
+
+networks:
+  web:
+    external: true
+  default:
+    driver: bridge
