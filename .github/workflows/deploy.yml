@@ -16,15 +16,17 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            set -e  # Exit on any error
+
             echo "Pulling latest commits..."
             cd ${{ secrets.SERVER_PATH }}
             git pull origin main
 
-            echo "Ensuring neo4j is running..."
-            docker compose up -d --wait neo4j
+            COMMIT_HASH=$(git rev-parse --short HEAD)
+            echo "Deploying commit: $COMMIT_HASH"
 
-            echo "Building and deploying app..."
-            docker compose up -d --build --no-deps --wait app
+            echo "Building and deploying..."
+            docker compose up -d --build --wait
 
             echo "Cleaning up old images..."
             docker image prune -f
@@ -32,6 +34,6 @@ jobs:
             echo "Container status:"
             docker compose ps --format "table {{.Service}}\t{{.Status}}\t{{.Ports}}"
 
-            echo "Deployment complete!"
+            echo "Deployment complete! (commit: $COMMIT_HASH)"
 
 
