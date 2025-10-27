@@ -493,11 +493,11 @@ npm run build && npm run lint && npm test
 
 This layered approach provides **fast feedback** locally while ensuring **comprehensive testing** before deployment.
 
-## References
+## References and Tools Used
 
 - [Neo4j](https://neo4j.com/) - Graph database
 - [Twitter v2 Dataset](https://github.com/neo4j-graph-examples/twitter-v2)
 - [all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2) - Embedding model
 - [Google Gemini AI](https://ai.google.dev/) - Natural language processing
-
+- [Claude Code](https://www.claude.com/product/claude-code) - AI Pair programmer :)
 ---
