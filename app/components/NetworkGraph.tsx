@@ -106,12 +106,13 @@ export default function NetworkGraph({
       setDimensions({ width, height });
 
       // Increment resize generation if width changed significantly (more than 50px)
-      if (Math.abs(width - previousWidthRef.current) > 50) {
+      // Only do this when not loading to avoid unnecessary remounts during filter changes
+      if (!loading && Math.abs(width - previousWidthRef.current) > 50) {
         previousWidthRef.current = width;
         setResizeGeneration(prev => prev + 1);
       }
     }
-  }, []);
+  }, [loading]);
 
   useLayoutEffect(() => {
     if (!containerRef.current) return;
@@ -152,9 +153,21 @@ export default function NetworkGraph({
       !hasInitialZoomedRef.current
     ) {
       hasInitialZoomedRef.current = true;
-      fgRef.current.zoomToFit(10, 20); // Quick initial zoom with less padding
+      // Delay to ensure canvas is ready
+      setTimeout(() => {
+        if (fgRef.current) {
+          fgRef.current.zoomToFit(10, 20);
+        }
+      }, 50);
     }
   }, [graphData]);
+
+  // Re-measure dimensions when graph data changes
+  useEffect(() => {
+    if (graphData.nodes.length > 0) {
+      updateDimensions();
+    }
+  }, [graphData.nodes.length, updateDimensions]);
 
   // Handle focused node centering
   useEffect(() => {
@@ -443,6 +456,32 @@ export default function NetworkGraph({
 
   const activeFilters = getActiveFilters();
 
+  // Get color classes for filter pills based on type
+  const getFilterPillClasses = (type: string) => {
+    switch (type) {
+      case 'user':
+        return {
+          pill: 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200',
+          button: 'hover:bg-green-200 dark:hover:bg-green-800'
+        };
+      case 'hashtag':
+        return {
+          pill: 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200',
+          button: 'hover:bg-purple-200 dark:hover:bg-purple-800'
+        };
+      case 'keyword':
+        return {
+          pill: 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200',
+          button: 'hover:bg-blue-200 dark:hover:bg-blue-800'
+        };
+      default:
+        return {
+          pill: 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200',
+          button: 'hover:bg-gray-200 dark:hover:bg-gray-700'
+        };
+    }
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-4">
@@ -477,21 +516,24 @@ export default function NetworkGraph({
                 Filters:
               </span>
               <div className="flex gap-2 items-center overflow-x-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
-                {activeFilters.map((filter, index) => (
-                  <span
-                    key={index}
-                    className="inline-flex items-center gap-1 rounded-full bg-blue-100 dark:bg-blue-900 pl-2.5 pr-1.5 py-0.5 text-xs font-medium text-blue-800 dark:text-blue-200 shrink-0"
-                  >
-                    {filter.label}
-                    <button
-                      onClick={() => handleRemoveFilter(filter.type, filter.value)}
-                      className="hover:bg-blue-200 dark:hover:bg-blue-800 rounded-full p-0.5 transition-colors -mr-0.5"
-                      aria-label={`Remove ${filter.label}`}
+                {activeFilters.map((filter, index) => {
+                  const colors = getFilterPillClasses(filter.type);
+                  return (
+                    <span
+                      key={index}
+                      className={`inline-flex items-center gap-1 rounded-full pl-2.5 pr-1.5 py-0.5 text-xs font-medium shrink-0 ${colors.pill}`}
                     >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </span>
-                ))}
+                      {filter.label}
+                      <button
+                        onClick={() => handleRemoveFilter(filter.type, filter.value)}
+                        className={`rounded-full p-0.5 transition-colors -mr-0.5 ${colors.button}`}
+                        aria-label={`Remove ${filter.label}`}
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -515,6 +557,7 @@ export default function NetworkGraph({
           enableNodeDrag={true}
           enableZoomInteraction={true}
           enablePanInteraction={true}
+          enablePointerInteraction={true}
           onNodeDrag={() => {
             hasUserInteractedRef.current = true;
           }}
