@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   Search,
   User,
@@ -431,7 +431,7 @@ export default function GlobalSearch({
 
   // Helper function to format text with clickable hashtags, mentions, and links
   const formatInteractiveText = (text: string): React.ReactNode => {
-    if (!text || typeof text !== 'string') return text;
+    if (!text) return text;
 
     // Combined regex to match URLs, hashtags, and @mentions
     const pattern = /(https?:\/\/[^\s]+)|#(\w+)|@(\w+)/g;
@@ -614,7 +614,7 @@ export default function GlobalSearch({
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyPress={(e: React.KeyboardEvent) => {
+                    onKeyUp={(e: React.KeyboardEvent) => {
                       if (e.key === 'Enter') {
                         handleSearch(1);
                         (e.target as HTMLInputElement).blur();

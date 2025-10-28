@@ -3,11 +3,8 @@
 import { useEffect, useState } from 'react';
 import {
   X,
-  Users,
-  UserPlus,
   MessageSquare,
   Heart,
-  Hash,
   User as UserIcon,
   Eye,
   Highlighter,
@@ -309,7 +306,7 @@ export default function UserDetail({
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   // Handle Neo4j Integer or regular string/number
-                                  let tweetIdStr = '';
+                                  let tweetIdStr: string;
                                   if (tweet.id && typeof tweet.id === 'object' && 'toNumber' in tweet.id) {
                                     tweetIdStr = (tweet.id as any).toNumber().toString();
                                   } else {

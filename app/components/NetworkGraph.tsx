@@ -86,8 +86,8 @@ export default function NetworkGraph({
         data = {
           nodes: data.nodes.filter(node => allowedNodeIds.has(node.id)),
           links: data.links.filter(link =>
-            allowedNodeIds.has(typeof link.source === 'string' ? link.source : (link.source as any).id) &&
-            allowedNodeIds.has(typeof link.target === 'string' ? link.target : (link.target as any).id)
+            allowedNodeIds.has(link.source) &&
+            allowedNodeIds.has(link.target)
           ),
         };
       }

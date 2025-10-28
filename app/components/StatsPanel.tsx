@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { Users, MessageSquare, Hash } from 'lucide-react';
 import { Stats, StatsPanelProps } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Badge } from './ui/badge';
 
 export default function StatsPanel({
   onUserClick,
