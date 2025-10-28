@@ -4,6 +4,12 @@ import { useEffect } from 'react';
 import { Eye, Highlighter, ExternalLink, X, User as UserIcon, Heart, ArrowLeft } from 'lucide-react';
 import { TweetDetailProps } from '@/types';
 import { Button } from './ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from './ui/tooltip';
 import TweetCard from './TweetCard';
 
 export default function TweetDetail({
@@ -103,13 +109,21 @@ export default function TweetDetail({
                   )}
                 </div>
               </div>
-              <button
-                onClick={() => window.open(twitterUrl, '_blank', 'noopener,noreferrer')}
-                className="p-1.5 text-muted-foreground hover:text-primary transition-colors"
-                title="View on Twitter"
-              >
-                <ExternalLink className="w-4 h-4" />
-              </button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => window.open(twitterUrl, '_blank', 'noopener,noreferrer')}
+                      className="p-1.5 text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>View on Twitter</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
 
             <div className="mb-2">
@@ -138,22 +152,40 @@ export default function TweetDetail({
           </div>
 
           <div className="flex gap-2">
-            <Button
-              onClick={onViewInGraph}
-              variant="outline"
-              size="sm"
-            >
-              <Eye className="w-4 h-4 mr-1" />
-              Network
-            </Button>
-            <Button
-              onClick={onHighlight}
-              variant="outline"
-              size="sm"
-            >
-              <Highlighter className="w-4 h-4 mr-1" />
-              Focus
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={onViewInGraph}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Eye className="w-4 h-4 mr-1" />
+                    Network
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>View this tweet's connections in the graph</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={onHighlight}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Highlighter className="w-4 h-4 mr-1" />
+                    Focus
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Highlight this tweet and connected nodes in the graph</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
 
           <div className="text-xs text-muted-foreground pt-2 border-t">

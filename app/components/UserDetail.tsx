@@ -14,6 +14,12 @@ import {
 import { UserDetailProps, User } from '@/types';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from './ui/tooltip';
 import TweetCard from './TweetCard';
 
 export default function UserDetail({
@@ -171,22 +177,40 @@ export default function UserDetail({
                   </div>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2 flex-shrink-0">
-                  <Button
-                    onClick={onViewInGraph}
-                    variant="outline"
-                    size="sm"
-                  >
-                    <Eye className="w-4 h-4 mr-1" />
-                    Network
-                  </Button>
-                  <Button
-                    onClick={onHighlight}
-                    variant="outline"
-                    size="sm"
-                  >
-                    <Highlighter className="w-4 h-4 mr-1" />
-                    Focus
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          onClick={onViewInGraph}
+                          variant="outline"
+                          size="sm"
+                        >
+                          <Eye className="w-4 h-4 mr-1" />
+                          Network
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>View this user's connections in the graph</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          onClick={onHighlight}
+                          variant="outline"
+                          size="sm"
+                        >
+                          <Highlighter className="w-4 h-4 mr-1" />
+                          Focus
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Highlight this user and connected nodes in the graph</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </div>
 
@@ -302,25 +326,33 @@ export default function UserDetail({
                                   </button>
                                 </div>
                               </div>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  // Handle Neo4j Integer or regular string/number
-                                  let tweetIdStr: string;
-                                  if (tweet.id && typeof tweet.id === 'object' && 'toNumber' in tweet.id) {
-                                    tweetIdStr = (tweet.id as any).toNumber().toString();
-                                  } else {
-                                    tweetIdStr = String(tweet.id);
-                                  }
-                                  const cleanId = tweetIdStr.replace('tweet-', '');
-                                  const tweetUrl = `https://twitter.com/${user.screenName}/status/${cleanId}`;
-                                  window.open(tweetUrl, '_blank', 'noopener,noreferrer');
-                                }}
-                                className="p-1.5 text-muted-foreground hover:text-primary transition-colors"
-                                title="View on Twitter"
-                              >
-                                <ExternalLink className="w-4 h-4" />
-                              </button>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        // Handle Neo4j Integer or regular string/number
+                                        let tweetIdStr: string;
+                                        if (tweet.id && typeof tweet.id === 'object' && 'toNumber' in tweet.id) {
+                                          tweetIdStr = (tweet.id as any).toNumber().toString();
+                                        } else {
+                                          tweetIdStr = String(tweet.id);
+                                        }
+                                        const cleanId = tweetIdStr.replace('tweet-', '');
+                                        const tweetUrl = `https://twitter.com/${user.screenName}/status/${cleanId}`;
+                                        window.open(tweetUrl, '_blank', 'noopener,noreferrer');
+                                      }}
+                                      className="p-1.5 text-muted-foreground hover:text-primary transition-colors"
+                                    >
+                                      <ExternalLink className="w-4 h-4" />
+                                    </button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>View on Twitter</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
                             </div>
 
                             {/* Tweet content */}

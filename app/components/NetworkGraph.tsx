@@ -14,6 +14,12 @@ import { useTheme } from 'next-themes';
 import { NetworkGraphProps, GraphData, GraphNode } from '@/types';
 import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from './ui/tooltip';
 
 const ForceGraph2D = dynamic(() => import('react-force-graph-2d'), {
   ssr: false,
@@ -350,6 +356,17 @@ export default function NetworkGraph({
   const getActiveFilters = () => {
     const active: Array<{ type: string; label: string; value?: string }> = [];
 
+    if (filters.nodeTypes && filters.nodeTypes.length > 0) {
+      const nodeTypeLabels: Record<string, string> = {
+        user: 'Users only',
+        hashtag: 'Hashtags only',
+        tweet: 'Tweets only',
+      };
+      active.push({
+        type: 'nodeTypes',
+        label: nodeTypeLabels[filters.nodeTypes[0]],
+      });
+    }
     if (filters.minFollowers > 0) {
       active.push({
         type: 'minFollowers',
@@ -413,6 +430,9 @@ export default function NetworkGraph({
 
     const newFilters = { ...filters };
     switch (filterType) {
+      case 'nodeTypes':
+        newFilters.nodeTypes = undefined;
+        break;
       case 'minFollowers':
         newFilters.minFollowers = 0;
         break;
@@ -453,6 +473,11 @@ export default function NetworkGraph({
 
   const getFilterPillClasses = (type: string) => {
     switch (type) {
+      case 'nodeTypes':
+        return {
+          pill: 'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200',
+          button: 'hover:bg-orange-200 dark:hover:bg-orange-800'
+        };
       case 'user':
         return {
           pill: 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200',
@@ -641,13 +666,21 @@ export default function NetworkGraph({
 
         {/* Recenter button */}
         {hasUserMoved && (
-          <button
-            onClick={handleRecenter}
-            className="absolute bottom-4 right-4 p-2.5 rounded-lg bg-background/60 hover:bg-background border shadow-md transition-all duration-200"
-            title="Recenter graph"
-          >
-            <Maximize2 className="w-4 h-4" />
-          </button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={handleRecenter}
+                  className="absolute bottom-4 right-4 p-2.5 rounded-lg bg-background/60 hover:bg-background border shadow-md transition-all duration-200"
+                >
+                  <Maximize2 className="w-4 h-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Recenter and fit graph to view</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
       </div>
 
