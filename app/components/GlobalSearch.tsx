@@ -709,9 +709,9 @@ export default function GlobalSearch({
                       handleSearch(1, 'user');
                     }
                   }}
-                  className={`flex-1 px-2 sm:px-4 py-2 rounded-md transition-all text-sm font-medium flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 ${
+                  className={`flex-1 px-2 sm:px-4 py-2 rounded-md transition-colors text-sm font-medium flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 ${
                     searchType === 'user'
-                      ? 'bg-background shadow-xs'
+                      ? 'bg-background text-foreground shadow-xs'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
@@ -729,9 +729,9 @@ export default function GlobalSearch({
                       handleSearch(1, 'hashtag');
                     }
                   }}
-                  className={`flex-1 px-2 sm:px-4 py-2 rounded-md transition-all text-sm font-medium flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 ${
+                  className={`flex-1 px-2 sm:px-4 py-2 rounded-md transition-colors text-sm font-medium flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 ${
                     searchType === 'hashtag'
-                      ? 'bg-background shadow-xs'
+                      ? 'bg-background text-foreground shadow-xs'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
@@ -749,9 +749,9 @@ export default function GlobalSearch({
                       handleSearch(1, 'tweet');
                     }
                   }}
-                  className={`flex-1 px-2 sm:px-4 py-2 rounded-md transition-all text-sm font-medium flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 ${
+                  className={`flex-1 px-2 sm:px-4 py-2 rounded-md transition-colors text-sm font-medium flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 ${
                     searchType === 'tweet'
-                      ? 'bg-background shadow-xs'
+                      ? 'bg-background text-foreground shadow-xs'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
