@@ -1128,7 +1128,7 @@ export default function GlobalSearch({
                                       columnType === 'hashtag';
 
                                     // Convert Neo4j special types to regular values
-                                    let convertedValue = value;
+                                    let convertedValue: unknown;
                                     if (isNeo4jDateTime(value)) {
                                       convertedValue =
                                         convertNeo4jDateTime(value);
