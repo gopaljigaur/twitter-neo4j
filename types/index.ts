@@ -91,6 +91,7 @@ export interface Filters {
   hashtags: string[]; // Filter by tweets with these hashtags
   keywords: string[]; // Search tweet text for these keywords
   limit: number; // Number of tweets to show
+  nodeTypes?: ('user' | 'hashtag' | 'tweet')[]; // Filter by node types (frontend only)
 }
 
 // Search types
@@ -192,6 +193,7 @@ export interface TweetDetailProps {
 export interface StatsPanelProps {
   onUserClick?: (username: string) => void;
   onHashtagClick?: (hashtag: string) => void;
+  onFilterByType?: (type: 'user' | 'hashtag' | 'tweet') => void;
 }
 
 // API Error types

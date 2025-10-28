@@ -23,6 +23,7 @@ export default function Home() {
     hashtags: [],
     keywords: [],
     limit: 100,
+    nodeTypes: undefined,
   });
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [selectedHashtag, setSelectedHashtag] = useState<string | null>(null);
@@ -203,6 +204,23 @@ export default function Home() {
     scrollToGraph();
   };
 
+  const handleFilterByNodeType = (type: 'user' | 'hashtag' | 'tweet') => {
+    // Close all modals and clear navigation stack
+    closeAllModals();
+    // Clear highlights
+    setHighlightedNodeId(null);
+    setFocusedNodeId(null);
+    // Set filter to show only the selected node type
+    setFilters((prev) => ({
+      ...prev,
+      users: [],
+      hashtags: [],
+      keywords: [],
+      nodeTypes: [type],
+    }));
+    scrollToGraph();
+  };
+
   const handleSearchTweetClick = (
     tweetId: string,
     text: string,
@@ -245,6 +263,7 @@ export default function Home() {
           <StatsPanel
             onUserClick={handleUserClick}
             onHashtagClick={handleHashtagClick}
+            onFilterByType={handleFilterByNodeType}
           />
 
           <GlobalSearch

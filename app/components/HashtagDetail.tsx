@@ -132,16 +132,18 @@ export default function HashtagDetail({
           {hashtag && !loading && (
             <div className="space-y-4">
               <div className="flex items-start gap-4">
-                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                  <Hash className="w-8 h-8 text-muted-foreground" />
+                <div className="flex items-start gap-4 flex-1 min-w-0">
+                  <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                    <Hash className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-2xl font-semibold">#{hashtag.name}</h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Trending hashtag
+                    </p>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-2xl font-semibold">#{hashtag.name}</h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Trending hashtag
-                  </p>
-                </div>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2 flex-shrink-0">
                   <Button
                     onClick={onViewInGraph}
                     variant="outline"
@@ -163,7 +165,7 @@ export default function HashtagDetail({
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="rounded-md border p-4 text-center">
-                  <p className="text-2xl font-bold">
+                  <p className="text-lg sm:text-2xl font-bold">
                     {hashtag.totalTweets.toLocaleString()}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
@@ -171,7 +173,7 @@ export default function HashtagDetail({
                   </p>
                 </div>
                 <div className="rounded-md border p-4 text-center">
-                  <p className="text-2xl font-bold">
+                  <p className="text-lg sm:text-2xl font-bold">
                     {hashtag.totalUsers.toLocaleString()}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">

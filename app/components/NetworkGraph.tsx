@@ -9,7 +9,7 @@ import {
   useLayoutEffect,
 } from 'react';
 import dynamic from 'next/dynamic';
-import { Search, RefreshCw, X } from 'lucide-react';
+import { Search, RefreshCw, X, Maximize2 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { NetworkGraphProps, GraphData, GraphNode } from '@/types';
 import { Card, CardContent } from './ui/card';
@@ -37,7 +37,7 @@ export default function NetworkGraph({
   const fgRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const hasInitialZoomedRef = useRef(false);
-  const hasUserInteractedRef = useRef(false);
+  const [hasUserMoved, setHasUserMoved] = useState<boolean>(false);
   const [dimensions, setDimensions] = useState({ width: 800, height: 550 });
   const [resizeGeneration, setResizeGeneration] = useState(0);
   const previousWidthRef = useRef(800);
@@ -46,7 +46,7 @@ export default function NetworkGraph({
     try {
       setLoading(true);
       hasInitialZoomedRef.current = false; // Reset zoom flag when fetching new data
-      hasUserInteractedRef.current = false; // Reset interaction flag when fetching new data
+      setHasUserMoved(false); // Reset interaction flag when fetching new data
       const params = new URLSearchParams({
         limit: filters.limit.toString(),
         minFollowers: filters.minFollowers.toString(),
@@ -73,7 +73,25 @@ export default function NetworkGraph({
       const response = await fetch(`/api/network?${params}`);
       // @ts-ignore - Intentionally throwing error to be caught by catch block
       if (!response.ok) throw new Error('Failed to fetch network data');
-      const data: GraphData = await response.json();
+      let data: GraphData = await response.json();
+
+      // Apply frontend nodeType filter if specified
+      if (filters.nodeTypes && filters.nodeTypes.length > 0) {
+        const allowedNodeIds = new Set(
+          data.nodes
+            .filter(node => filters.nodeTypes!.includes(node.type))
+            .map(node => node.id)
+        );
+
+        data = {
+          nodes: data.nodes.filter(node => allowedNodeIds.has(node.id)),
+          links: data.links.filter(link =>
+            allowedNodeIds.has(typeof link.source === 'string' ? link.source : (link.source as any).id) &&
+            allowedNodeIds.has(typeof link.target === 'string' ? link.target : (link.target as any).id)
+          ),
+        };
+      }
+
       setGraphData(data);
       setError(null);
     } catch (err) {
@@ -156,7 +174,7 @@ export default function NetworkGraph({
       // Delay to ensure canvas is ready
       setTimeout(() => {
         if (fgRef.current) {
-          fgRef.current.zoomToFit(10, 100);
+          fgRef.current.zoomToFit(1000, 50);
         }
       }, 50);
     }
@@ -190,10 +208,10 @@ export default function NetworkGraph({
 
   // Handle force simulation stabilization - zoom to fit when simulation stops
   const handleEngineStop = useCallback(() => {
-    if (fgRef.current && !focusedNodeId && !hasUserInteractedRef.current) {
+    if (fgRef.current && !focusedNodeId && !hasUserMoved) {
       fgRef.current.zoomToFit(1000, 50);
     }
-  }, [focusedNodeId]);
+  }, [focusedNodeId, hasUserMoved]);
 
   // Calculate highlighted nodes and their connections
   const highlightedNodes = useMemo(() => {
@@ -454,6 +472,13 @@ export default function NetworkGraph({
     onFilterChange(newFilters);
   };
 
+  const handleRecenter = () => {
+    if (fgRef.current) {
+      fgRef.current.zoomToFit(1000, 50);
+      setHasUserMoved(false);
+    }
+  };
+
   const activeFilters = getActiveFilters();
 
   // Get color classes for filter pills based on type
@@ -543,7 +568,7 @@ export default function NetworkGraph({
       <div
         ref={containerRef}
         style={{ width: '100%' }}
-        className="force-graph-container border rounded-md overflow-hidden bg-card h-[400px] md:h-[600px] lg:h-[700px]"
+        className="relative force-graph-container border rounded-md overflow-hidden bg-card h-[400px] md:h-[600px] lg:h-[700px]"
       >
         <ForceGraph2D
           key={resizeGeneration}
@@ -552,24 +577,26 @@ export default function NetworkGraph({
           height={dimensions.height}
           backgroundColor={theme === 'light' ? '#fafafa' : '#0a0a0a'}
           graphData={graphData}
-          warmupTicks={0}
-          cooldownTime={0}
+          warmupTicks={100}
+          cooldownTime={1000}
+          d3AlphaDecay={0.005}
+          d3VelocityDecay={0.7}
           enableNodeDrag={true}
           enableZoomInteraction={true}
           enablePanInteraction={true}
           enablePointerInteraction={true}
           onNodeDrag={() => {
-            hasUserInteractedRef.current = true;
+            setHasUserMoved(true);
           }}
           onZoom={() => {
-            hasUserInteractedRef.current = true;
+            setHasUserMoved(true);
           }}
           nodeLabel={(node: any) => `${node.label} (${node.type})`}
           nodeColor={(node: any) => getNodeColor(node as GraphNode)}
           nodeVal={(node: any) => getNodeSize(node as GraphNode)}
           linkColor={(link: any) => {
             if (!highlightedNodeId) {
-              return theme === 'dark' ? '#3f3f46' : '#e4e4e7';
+              return theme === 'dark' ? '#52525b' : '#e4e4e7';
             }
             const sourceId =
               typeof link.source === 'object' ? link.source.id : link.source;
@@ -579,10 +606,10 @@ export default function NetworkGraph({
               highlightedNodes.has(sourceId) && highlightedNodes.has(targetId);
             return isHighlighted
               ? theme === 'dark'
-                ? '#3f3f46'
+                ? '#52525b'
                 : '#e4e4e7'
               : theme === 'dark'
-                ? '#27272a'
+                ? '#3f3f46'
                 : '#f4f4f5';
           }}
           linkWidth={2}
@@ -649,6 +676,17 @@ export default function NetworkGraph({
             ctx.globalAlpha = 1.0;
           }}
         />
+
+        {/* Recenter button */}
+        {hasUserMoved && (
+          <button
+            onClick={handleRecenter}
+            className="absolute bottom-4 right-4 p-2.5 rounded-lg bg-background/60 hover:bg-background border shadow-md transition-all duration-200"
+            title="Recenter graph"
+          >
+            <Maximize2 className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
       <div className="mt-4 text-xs text-muted-foreground">

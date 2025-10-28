@@ -145,33 +145,35 @@ export default function UserDetail({
           {user && !loading && (
             <div className="space-y-4">
               <div className="flex items-start gap-4">
-                {user.profileImageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={user.profileImageUrl}
-                    alt={user.name}
-                    className="w-16 h-16 rounded-full"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                      const fallback = e.currentTarget
-                        .nextElementSibling as HTMLElement;
-                      if (fallback) fallback.style.display = 'flex';
-                    }}
-                  />
-                ) : null}
-                <div
-                  className="w-16 h-16 rounded-full bg-muted items-center justify-center"
-                  style={{ display: user.profileImageUrl ? 'none' : 'flex' }}
-                >
-                  <UserIcon className="w-8 h-8 text-muted-foreground" />
+                <div className="flex items-start gap-4 flex-1 min-w-0">
+                  {user.profileImageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={user.profileImageUrl}
+                      alt={user.name}
+                      className="w-16 h-16 rounded-full flex-shrink-0"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        const fallback = e.currentTarget
+                          .nextElementSibling as HTMLElement;
+                        if (fallback) fallback.style.display = 'flex';
+                      }}
+                    />
+                  ) : null}
+                  <div
+                    className="w-16 h-16 rounded-full bg-muted items-center justify-center flex-shrink-0"
+                    style={{ display: user.profileImageUrl ? 'none' : 'flex' }}
+                  >
+                    <UserIcon className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-semibold">{user.name}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      @{user.screenName}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold">{user.name}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    @{user.screenName}
-                  </p>
-                </div>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2 flex-shrink-0">
                   <Button
                     onClick={onViewInGraph}
                     variant="outline"
@@ -193,7 +195,7 @@ export default function UserDetail({
 
               <div className="grid grid-cols-3 gap-4">
                 <div className="rounded-md border p-4 text-center">
-                  <p className="text-2xl font-bold">
+                  <p className="text-lg sm:text-2xl font-bold">
                     {(user.followersCount ?? 0).toLocaleString()}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
@@ -201,7 +203,7 @@ export default function UserDetail({
                   </p>
                 </div>
                 <div className="rounded-md border p-4 text-center">
-                  <p className="text-2xl font-bold">
+                  <p className="text-lg sm:text-2xl font-bold">
                     {(user.followingCount ?? 0).toLocaleString()}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
@@ -209,7 +211,7 @@ export default function UserDetail({
                   </p>
                 </div>
                 <div className="rounded-md border p-4 text-center">
-                  <p className="text-2xl font-bold">
+                  <p className="text-lg sm:text-2xl font-bold">
                     {(user.tweetCount ?? 0).toLocaleString()}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">Tweets</p>

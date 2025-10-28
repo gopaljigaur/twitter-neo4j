@@ -9,6 +9,7 @@ import { Badge } from './ui/badge';
 export default function StatsPanel({
   onUserClick,
   onHashtagClick,
+  onFilterByType,
 }: StatsPanelProps) {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -65,7 +66,10 @@ export default function StatsPanel({
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="rounded-lg border bg-card p-4">
+          <div
+            className="rounded-lg border bg-card p-4 cursor-pointer hover:bg-muted/50 transition-colors"
+            onClick={() => onFilterByType?.('user')}
+          >
             <div className="flex items-center gap-3">
               <div className="p-2 bg-muted rounded-md">
                 <Users className="w-5 h-5" />
@@ -79,7 +83,10 @@ export default function StatsPanel({
             </div>
           </div>
 
-          <div className="rounded-lg border bg-card p-4">
+          <div
+            className="rounded-lg border bg-card p-4 cursor-pointer hover:bg-muted/50 transition-colors"
+            onClick={() => onFilterByType?.('tweet')}
+          >
             <div className="flex items-center gap-3">
               <div className="p-2 bg-muted rounded-md">
                 <MessageSquare className="w-5 h-5" />
@@ -93,7 +100,10 @@ export default function StatsPanel({
             </div>
           </div>
 
-          <div className="rounded-lg border bg-card p-4">
+          <div
+            className="rounded-lg border bg-card p-4 cursor-pointer hover:bg-muted/50 transition-colors"
+            onClick={() => onFilterByType?.('hashtag')}
+          >
             <div className="flex items-center gap-3">
               <div className="p-2 bg-muted rounded-md">
                 <Hash className="w-5 h-5" />

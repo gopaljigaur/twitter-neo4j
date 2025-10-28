@@ -10,6 +10,7 @@ import {
   Loader2,
   Sparkles,
   Code,
+  List,
 } from 'lucide-react';
 import {
   UserSearchResult,
@@ -574,26 +575,26 @@ export default function GlobalSearch({
           <div className="flex items-center gap-2 p-1 bg-muted rounded-lg">
             <button
               onClick={() => handleModeSwitch('regular')}
-              className={`px-4 py-2 rounded-md transition-all text-sm font-medium ${
+              className={`px-4 py-2 rounded-md transition-all text-sm font-medium flex items-center ${
                 searchMode === 'regular'
                   ? 'bg-background shadow-xs'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <Search className="w-4 h-4 inline mr-2" />
-              Search
+              <List className="w-4 h-4 mr-2" />
+              Normal
             </button>
             <button
               onClick={() => aiAvailable && handleModeSwitch('ai')}
               disabled={!aiAvailable}
-              className={`px-4 py-2 rounded-md transition-all text-sm font-medium ${
+              className={`px-4 py-2 rounded-md transition-all text-sm font-medium flex items-center ${
                 searchMode === 'ai'
                   ? 'bg-background shadow-xs'
                   : 'text-muted-foreground hover:text-foreground'
               } ${!aiAvailable ? 'opacity-50 cursor-not-allowed' : ''}`}
               title={!aiAvailable ? 'AI Query is unavailable' : ''}
             >
-              <Sparkles className="w-4 h-4 inline mr-2" />
+              <Sparkles className="w-4 h-4 mr-2" />
               AI Query
               {!aiAvailable && (
                 <span className="ml-1 text-xs">(Disabled)</span>
@@ -607,8 +608,8 @@ export default function GlobalSearch({
             {/* Regular Search Input */}
             <div className="space-y-3" ref={searchContainerRef}>
               <div className="flex gap-2 items-center">
-                <Search className="w-5 h-5 text-muted-foreground" />
                 <div className="flex-1 relative">
+                  <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
                   <Input
                     type="text"
                     value={searchQuery}
@@ -625,7 +626,7 @@ export default function GlobalSearch({
                       setShowSuggestions(true)
                     }
                     placeholder="Search..."
-                    className="pr-8"
+                    className="pl-10 pr-8"
                   />
                   {searchQuery && (
                     <button
@@ -708,14 +709,14 @@ export default function GlobalSearch({
                       handleSearch(1, 'user');
                     }
                   }}
-                  className={`flex-1 px-4 py-2 rounded-md transition-all text-sm font-medium ${
+                  className={`flex-1 px-2 sm:px-4 py-2 rounded-md transition-all text-sm font-medium flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 ${
                     searchType === 'user'
                       ? 'bg-background shadow-xs'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  <User className="w-4 h-4 inline mr-2" />
-                  Users
+                  <User className="w-4 h-4" />
+                  <span className="text-xs sm:text-sm">Users</span>
                 </button>
                 <button
                   onClick={() => {
@@ -728,14 +729,14 @@ export default function GlobalSearch({
                       handleSearch(1, 'hashtag');
                     }
                   }}
-                  className={`flex-1 px-4 py-2 rounded-md transition-all text-sm font-medium ${
+                  className={`flex-1 px-2 sm:px-4 py-2 rounded-md transition-all text-sm font-medium flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 ${
                     searchType === 'hashtag'
                       ? 'bg-background shadow-xs'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  <Hash className="w-4 h-4 inline mr-2" />
-                  Hashtags
+                  <Hash className="w-4 h-4" />
+                  <span className="text-xs sm:text-sm">Hashtags</span>
                 </button>
                 <button
                   onClick={() => {
@@ -748,14 +749,14 @@ export default function GlobalSearch({
                       handleSearch(1, 'tweet');
                     }
                   }}
-                  className={`flex-1 px-4 py-2 rounded-md transition-all text-sm font-medium ${
+                  className={`flex-1 px-2 sm:px-4 py-2 rounded-md transition-all text-sm font-medium flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 ${
                     searchType === 'tweet'
                       ? 'bg-background shadow-xs'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  <MessageSquare className="w-4 h-4 inline mr-2" />
-                  Tweets
+                  <MessageSquare className="w-4 h-4" />
+                  <span className="text-xs sm:text-sm">Tweets</span>
                 </button>
               </div>
 
