@@ -55,9 +55,11 @@ export async function GET(
 ): Promise<NextResponse<User | { error: string; details?: string }>> {
   try {
     const { screenName } = await params;
+    const lowerScreenName = screenName.toLowerCase();
 
     const query = `
-      MATCH (u:User {screen_name: $screenName})
+      MATCH (u:User)
+      WHERE toLower(u.screen_name) = $lowerScreenName
       OPTIONAL MATCH (u)-[:POSTS]->(t:Tweet)
       OPTIONAL MATCH (t)-[:TAGS]->(h:Hashtag)
       WITH u, t, collect(DISTINCT h.name) as hashtags
@@ -87,7 +89,7 @@ export async function GET(
       } as user
     `;
 
-    const result = await read(query, { screenName });
+    const result = await read(query, { lowerScreenName });
 
     if (result.length === 0) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });

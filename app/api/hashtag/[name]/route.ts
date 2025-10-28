@@ -54,7 +54,6 @@ export async function GET(
 ): Promise<NextResponse> {
   try {
     const { name } = await params;
-    // Convert to lowercase for case-insensitive matching
     const lowerName = name.toLowerCase();
 
     const query = `

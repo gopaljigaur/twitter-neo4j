@@ -45,8 +45,8 @@ export default function NetworkGraph({
   const fetchNetworkData = useCallback(async () => {
     try {
       setLoading(true);
-      hasInitialZoomedRef.current = false; // Reset zoom flag when fetching new data
-      setHasUserMoved(false); // Reset interaction flag when fetching new data
+      hasInitialZoomedRef.current = false;
+      setHasUserMoved(false);
       const params = new URLSearchParams({
         limit: filters.limit.toString(),
         minFollowers: filters.minFollowers.toString(),
@@ -55,17 +55,14 @@ export default function NetworkGraph({
         minHashtagFrequency: filters.minHashtagFrequency.toString(),
       });
 
-      // Add multiple users
       filters.users.forEach(user => {
         if (user) params.append('users', user);
       });
 
-      // Add multiple hashtags
       filters.hashtags.forEach(hashtag => {
         if (hashtag) params.append('hashtags', hashtag);
       });
 
-      // Add multiple keywords
       filters.keywords.forEach(keyword => {
         if (keyword) params.append('keywords', keyword);
       });
@@ -75,7 +72,6 @@ export default function NetworkGraph({
       if (!response.ok) throw new Error('Failed to fetch network data');
       let data: GraphData = await response.json();
 
-      // Apply frontend nodeType filter if specified
       if (filters.nodeTypes && filters.nodeTypes.length > 0) {
         const allowedNodeIds = new Set(
           data.nodes
@@ -105,26 +101,20 @@ export default function NetworkGraph({
     fetchNetworkData();
   }, [fetchNetworkData]);
 
-  // Smart highlight clearing - only clear if highlighted node doesn't exist in graph
   useEffect(() => {
     if (!highlightedNodeId || graphData.nodes.length === 0) return;
 
     const nodeExists = graphData.nodes.some(node => node.id === highlightedNodeId);
     if (!nodeExists && onClearHighlight) {
-      // Node no longer exists in filtered data, clear highlight
       onClearHighlight();
     }
   }, [graphData.nodes, highlightedNodeId, onClearHighlight]);
 
-
-  // Measure container dimensions
   const updateDimensions = useCallback(() => {
     if (containerRef.current) {
       const { width, height } = containerRef.current.getBoundingClientRect();
       setDimensions({ width, height });
 
-      // Increment resize generation if width changed significantly (more than 50px)
-      // Only do this when not loading to avoid unnecessary remounts during filter changes
       if (!loading && Math.abs(width - previousWidthRef.current) > 50) {
         previousWidthRef.current = width;
         setResizeGeneration(prev => prev + 1);
@@ -163,7 +153,6 @@ export default function NetworkGraph({
     }
   }, [loading, graphData.nodes.length, updateDimensions]);
 
-  // Initial zoom to fit when graph loads
   useEffect(() => {
     if (
       fgRef.current &&
@@ -171,7 +160,6 @@ export default function NetworkGraph({
       !hasInitialZoomedRef.current
     ) {
       hasInitialZoomedRef.current = true;
-      // Delay to ensure canvas is ready
       setTimeout(() => {
         if (fgRef.current) {
           fgRef.current.zoomToFit(1000, 50);
@@ -180,19 +168,16 @@ export default function NetworkGraph({
     }
   }, [graphData]);
 
-  // Re-measure dimensions when graph data changes
   useEffect(() => {
     if (graphData.nodes.length > 0) {
       updateDimensions();
     }
   }, [graphData.nodes.length, updateDimensions]);
 
-  // Handle focused node centering
   useEffect(() => {
     if (!fgRef.current || !focusedNodeId || graphData.nodes.length === 0)
       return;
 
-    // Wait for simulation to stabilize before focusing
     const focusNode = () => {
       const node = graphData.nodes.find((n) => n.id === focusedNodeId);
       if (node && node.x !== undefined && node.y !== undefined) {
@@ -201,25 +186,20 @@ export default function NetworkGraph({
       }
     };
 
-    // Delay focus to ensure simulation has started and node positions are initialized
     const timer = setTimeout(focusNode, 300);
     return () => clearTimeout(timer);
   }, [focusedNodeId, graphData.nodes]);
 
-  // Handle force simulation stabilization - zoom to fit when simulation stops
   const handleEngineStop = useCallback(() => {
     if (fgRef.current && !focusedNodeId && !hasUserMoved) {
       fgRef.current.zoomToFit(1000, 50);
     }
   }, [focusedNodeId, hasUserMoved]);
 
-  // Calculate highlighted nodes and their connections
   const highlightedNodes = useMemo(() => {
     if (!highlightedNodeId) return new Set<string>();
 
     const connectedNodeIds = new Set<string>([highlightedNodeId]);
-
-    // Find all directly connected nodes
     graphData.links.forEach((link) => {
       if (link.source === highlightedNodeId) {
         connectedNodeIds.add(
@@ -259,26 +239,24 @@ export default function NetworkGraph({
 
   const getNodeLabelColor = (node: GraphNode): string => {
     if (theme === 'dark') {
-      // Lighter colors for dark mode
       switch (node.type) {
         case 'user':
-          return '#93C5FD'; // lighter blue
+          return '#93C5FD';
         case 'tweet':
-          return '#34D399'; // lighter green
+          return '#34D399';
         case 'hashtag':
-          return '#A78BFA'; // lighter purple
+          return '#A78BFA';
         default:
           return '#9CA3AF';
       }
     } else {
-      // Darker colors for light mode
       switch (node.type) {
         case 'user':
-          return '#2563EB'; // darker blue
+          return '#2563EB';
         case 'tweet':
-          return '#059669'; // darker green
+          return '#059669';
         case 'hashtag':
-          return '#7C3AED'; // darker purple
+          return '#7C3AED';
         default:
           return '#4B5563';
       }
@@ -298,7 +276,6 @@ export default function NetworkGraph({
           Math.min(9, Math.log((node.favoriteCount || 0) + 1) * 2.5)
         );
       case 'hashtag':
-        // Size based on number of connections (how many times the hashtag is used)
         const connections = graphData.links.filter(
           (link: any) =>
             (typeof link.source === 'object' ? link.source.id : link.source) === node.id ||
@@ -397,7 +374,6 @@ export default function NetworkGraph({
         label: `Min Hashtag Uses: ${filters.minHashtagFrequency}`,
       });
     }
-    // Show each user as a separate chip
     filters.users.forEach((user) => {
       if (user) {
         active.push({
@@ -407,7 +383,6 @@ export default function NetworkGraph({
         });
       }
     });
-    // Show each hashtag as a separate chip
     filters.hashtags.forEach((hashtag) => {
       if (hashtag) {
         active.push({
@@ -417,7 +392,6 @@ export default function NetworkGraph({
         });
       }
     });
-    // Show each keyword as a separate chip
     filters.keywords.forEach((keyword) => {
       if (keyword) {
         active.push({
@@ -452,15 +426,12 @@ export default function NetworkGraph({
         newFilters.minHashtagFrequency = 1;
         break;
       case 'user':
-        // Remove specific user from array
         newFilters.users = newFilters.users.filter(u => u !== value);
         break;
       case 'hashtag':
-        // Remove specific hashtag from array
         newFilters.hashtags = newFilters.hashtags.filter(h => h !== value);
         break;
       case 'keyword':
-        // Remove specific keyword from array
         newFilters.keywords = newFilters.keywords.filter(k => k !== value);
         break;
       case 'limit':
@@ -468,7 +439,6 @@ export default function NetworkGraph({
         break;
     }
 
-    // Highlight will be cleared automatically by useEffect if node doesn't exist
     onFilterChange(newFilters);
   };
 
@@ -481,7 +451,6 @@ export default function NetworkGraph({
 
   const activeFilters = getActiveFilters();
 
-  // Get color classes for filter pills based on type
   const getFilterPillClasses = (type: string) => {
     switch (type) {
       case 'user':
@@ -640,16 +609,13 @@ export default function NetworkGraph({
             const highlighted = isNodeHighlighted(graphNode.id);
             const isMainHighlight = graphNode.id === highlightedNodeId;
 
-            // Apply opacity for non-highlighted nodes
             ctx.globalAlpha = highlighted ? 1.0 : 0.3;
 
-            // Draw node circle
             ctx.fillStyle = getNodeColor(graphNode);
             ctx.beginPath();
             ctx.arc(node.x, node.y, size, 0, 2 * Math.PI, false);
             ctx.fill();
 
-            // Add ring around main highlighted node
             if (isMainHighlight) {
               ctx.strokeStyle = getNodeColor(graphNode);
               ctx.lineWidth = 2;
@@ -658,21 +624,17 @@ export default function NetworkGraph({
               ctx.stroke();
             }
 
-            // Draw label
             if (globalScale > 1.5) {
-              // Draw text stroke (outline) for readability
               ctx.strokeStyle = theme === 'dark' ? 'rgba(10, 10, 10, 0.9)' : 'rgba(250, 250, 250, 0.9)';
               ctx.lineWidth = 2;
               ctx.lineJoin = 'round';
               ctx.miterLimit = 2;
               ctx.strokeText(label, node.x, node.y + size + fontSize);
 
-              // Draw text fill
               ctx.fillStyle = getNodeLabelColor(graphNode);
               ctx.fillText(label, node.x, node.y + size + fontSize);
             }
 
-            // Reset global alpha
             ctx.globalAlpha = 1.0;
           }}
         />
